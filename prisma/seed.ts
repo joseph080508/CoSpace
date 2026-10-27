@@ -13,6 +13,9 @@ const configuredAdminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
 const configuredAdminPassword = process.env.ADMIN_PASSWORD;
 const adminName =
   process.env.ADMIN_NAME?.trim() || "Administrador CoSpace";
+const configuredUserEmail = process.env.USER_EMAIL?.trim().toLowerCase();
+const configuredUserPassword = process.env.USER_PASSWORD;
+const userName = process.env.USER_NAME?.trim() || "Usuario CoSpace";
 
 if (!configuredAdminEmail || !configuredAdminPassword) {
   throw new Error(
@@ -20,12 +23,28 @@ if (!configuredAdminEmail || !configuredAdminPassword) {
   );
 }
 
+if (!configuredUserEmail || !configuredUserPassword) {
+  throw new Error(
+    "Debes configurar USER_EMAIL y USER_PASSWORD en el archivo .env",
+  );
+}
+
 if (configuredAdminPassword.length < 12) {
   throw new Error("ADMIN_PASSWORD debe tener al menos 12 caracteres");
 }
 
+if (configuredUserPassword.length < 12) {
+  throw new Error("USER_PASSWORD debe tener al menos 12 caracteres");
+}
+
+if (configuredAdminEmail === configuredUserEmail) {
+  throw new Error("ADMIN_EMAIL y USER_EMAIL deben ser diferentes");
+}
+
 const adminEmail: string = configuredAdminEmail;
 const adminPassword: string = configuredAdminPassword;
+const userEmail: string = configuredUserEmail;
+const userPassword: string = configuredUserPassword;
 
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
@@ -64,7 +83,10 @@ const spaces = [
 ];
 
 async function main(): Promise<void> {
-  const passwordHash: string = await hash(adminPassword, 12);
+  const [adminPasswordHash, userPasswordHash] = await Promise.all([
+    hash(adminPassword, 12),
+    hash(userPassword, 12),
+  ]);
 
   await prisma.user.upsert({
     where: {
@@ -73,13 +95,30 @@ async function main(): Promise<void> {
     update: {
       name: adminName,
       role: "ADMIN",
-      passwordHash,
+      passwordHash: adminPasswordHash,
     },
     create: {
       name: adminName,
       email: adminEmail,
-      passwordHash,
+      passwordHash: adminPasswordHash,
       role: "ADMIN",
+    },
+  });
+
+  await prisma.user.upsert({
+    where: {
+      email: userEmail,
+    },
+    update: {
+      name: userName,
+      role: "USER",
+      passwordHash: userPasswordHash,
+    },
+    create: {
+      name: userName,
+      email: userEmail,
+      passwordHash: userPasswordHash,
+      role: "USER",
     },
   });
 
@@ -114,7 +153,7 @@ async function main(): Promise<void> {
   }
 
   console.info("Seed completado correctamente.");
-  console.info(`Administrador inicializado: ${adminEmail}`);
+  console.info("Cuentas de desarrollo inicializadas: ADMIN y USER.");
   console.info(`Espacios de ejemplo procesados: ${spaces.length}`);
 }
 
