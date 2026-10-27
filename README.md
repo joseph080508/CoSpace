@@ -395,3 +395,9 @@ Antes de publicar esta revisión, la migración `20261027003000_use_timestamptz`
 - No hay limitador de login compartido entre instancias, pruebas end-to-end, flujo de recuperación de contraseña ni configuración de despliegue versionada.
 
 El repositorio no declara una licencia; este README no asigna una.
+
+
+
+LINK DE VERCEL 
+
+https://vercel.com/joseph080508-3318/co-space-xu9z/7yLD83Zz5n6HL6nmsqXtZ7D6B3bB
