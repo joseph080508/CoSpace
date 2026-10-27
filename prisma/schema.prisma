@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  VISITOR
+  USER
+  ADMIN
+}
+
+enum SpaceType {
+  DESK
+  MEETING_ROOM
+  BOOTH
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  passwordHash  String
+  role          Role          @default(USER)
+  reservations  Reservation[]
+  refreshTokens RefreshToken[]
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
+
+  @@index([role])
+}
+
+model Space {
+  id           String        @id @default(cuid())
+  name         String
+  description  String        @db.Text
+  type         SpaceType
+  imageUrl     String?
+  capacity     Int           @default(1)
+  pricePerHour Decimal       @db.Decimal(10, 2)
+  isActive     Boolean       @default(true)
+  reservations Reservation[]
+  createdAt    DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @db.Timestamptz(3)
+
+  @@index([isActive, type])
+}
+
+model Reservation {
+  id         String            @id @default(cuid())
+  userId     String
+  spaceId    String
+  startAt    DateTime          @db.Timestamptz(3)
+  endAt      DateTime          @db.Timestamptz(3)
+  hours      Int
+  totalPrice Decimal           @db.Decimal(10, 2)
+  status     ReservationStatus @default(CONFIRMED)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime          @updatedAt @db.Timestamptz(3)
+
+  user       User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  space      Space             @relation(fields: [spaceId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status, startAt])
+  @@index([spaceId, status, startAt, endAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
