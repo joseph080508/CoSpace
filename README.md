@@ -13,6 +13,7 @@ Este repositorio contiene una aplicación full stack construida con Next.js App 
 - [Configuración e instalación local](#configuración-e-instalación-local)
 - [Variables de entorno](#variables-de-entorno)
 - [Cuentas de desarrollo](#cuentas-de-desarrollo)
+- [Credenciales de prueba](#credenciales-de-prueba)
 - [Reglas de negocio](#reglas-de-negocio)
 - [API HTTP](#api-http)
 - [Base de datos y Prisma](#base-de-datos-y-prisma)
@@ -168,6 +169,17 @@ El seed original solo preparaba un administrador y espacios de ejemplo. Se ampli
 No se incluyen credenciales de ejemplo presentadas como existentes. Después de configurar `.env`, ejecuta `npm run seed`; inicia sesión con los valores que configuraste. Estas cuentas son únicamente para desarrollo: no configures ni ejecutes estas cuentas de seed en producción. La ejecución del seed en una base existente actualizará el nombre, rol y hash de contraseña de las cuentas con esos correos, además de crear/actualizar los espacios de muestra.
 
 **Verificación de cuentas:** el código del seed fue inspeccionado y la idempotencia se verificó a nivel de implementación (`upsert` por correo). No se ejecutó contra la base conectada durante esta revisión, por lo que no se afirma que estas cuentas ya existan en una base concreta ni que sus credenciales hayan sido probadas allí. Después de ejecutar el seed en una base autorizada, verifica el acceso con el formulario de login.
+
+## Credenciales de prueba
+
+Estas credenciales corresponden a cuentas encontradas en la base configurada. La contraseña del administrador se contrastó con su hash almacenado mediante bcrypt, sin alterar la base. Son credenciales de prueba y no deben reutilizarse en producción.
+
+| Rol | Correo electrónico | Contraseña | Verificación |
+| --- | --- | --- | --- |
+| Administrador | `admin@cospace.com` | `admin12345678` | Verificada: rol ADMIN y la contraseña coincide con el hash almacenado. |
+| Usuario normal | `usuario.test@cospace.co` | No verificable | La cuenta existe con rol USER, pero no hay una contraseña configurada que pueda contrastarse. No se publica una contraseña inventada. |
+
+Para probar la cuenta normal, registra un usuario nuevo desde `/registro` o ejecuta el seed con `USER_EMAIL` y `USER_PASSWORD` configurados.
 
 ## Reglas de negocio
 
